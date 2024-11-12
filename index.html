@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Smart Dashboard</title>
+    <title>Smart IoT Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
     <style>
@@ -24,6 +24,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
         }
         .gauges {
             display: flex;
@@ -35,13 +36,26 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .gauge-container {
-            width: 200px;
+            width: 250px;
             text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        .gauge-container:hover {
+            transform: translateY(-5px);
         }
         .gauge-container p {
             margin-top: 10px;
             font-weight: bold;
             color: #2c3e50;
+            font-size: 1.2em;
+        }
+        .gauge-value {
+            font-size: 1.5em;
+            color: #3498db;
+            margin-top: 5px;
+            font-weight: bold;
         }
         .charts-container {
             display: flex;
@@ -71,15 +85,17 @@
             align-items: center;
         }
         input {
-            padding: 10px;
+            padding: 12px;
             border: 2px solid #3498db;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 16px;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
         }
         input:focus {
             border-color: #2980b9;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
         #intervalInput {
             width: 100px;
@@ -88,40 +104,67 @@
             width: 300px;
         }
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: #3498db;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         button:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(0);
         }
         .input-label {
             font-weight: bold;
             color: #2c3e50;
+            font-size: 1.1em;
+        }
+        .connection-status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .status-connected {
+            color: #27ae60;
+        }
+        .status-disconnected {
+            color: #c0392b;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="dashboard-title">My Smart Dashboard</h1>
+        <h1 class="dashboard-title">Smart IoT Dashboard</h1>
+        
+        <div id="connection-status" class="connection-status">
+            Connecting...
+        </div>
         
         <div class="gauges">
             <div class="gauge-container">
                 <canvas id="gauge1"></canvas>
-                <p>Sensor 1</p>
+                <p>Temperature</p>
+                <div class="gauge-value" id="value1">0°C</div>
             </div>
             <div class="gauge-container">
                 <canvas id="gauge2"></canvas>
-                <p>Sensor 2</p>
+                <p>Humidity</p>
+                <div class="gauge-value" id="value2">0%</div>
             </div>
             <div class="gauge-container">
                 <canvas id="gauge3"></canvas>
-                <p>Sensor 3</p>
+                <p>Battery Level</p>
+                <div class="gauge-value" id="value3">0%</div>
             </div>
         </div>
         
