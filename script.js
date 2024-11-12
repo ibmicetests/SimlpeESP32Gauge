@@ -1,5 +1,6 @@
 let ws;
 let chart;
+let numberChart;
 let gauges = [];
 
 // Initialize WebSocket connection
@@ -10,7 +11,16 @@ function initWebSocket() {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         updateGauges(data);
-        updateChart(data);
+        updateCharts(data);
+    };
+
+    ws.onopen = () => {
+        console.log('Connected to server');
+    };
+
+    ws.onclose = () => {
+        console.log('Disconnected from server');
+        setTimeout(initWebSocket, 3000);
     };
 }
 
@@ -40,65 +50,6 @@ function initGauges() {
         gauges.push(gauge);
     }
 }
-
-// Initialize chart
-function initChart() {
-    const ctx = document.getElementById('sensorChart').getContext('2d');
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Sensor 1',
-                data: [],
-                borderColor: 'rgb(255, 99, 132)',
-                tension: 0.1
-            }, {
-                label: 'Sensor 2',
-                data: [],
-                borderColor: 'rgb(54, 162, 235)',
-                tension: 0.1
-            }, {
-                label: 'Sensor 3',
-                data: [],
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
-
-function updateGauges(data) {
-    gauges[0].set(data.sensor1);
-    gauges[1].set(data.sensor2);
-    gauges[2].set(data.sensor3);
-}
-
-function updateChart(data) {
-    const timestamp = new Date().toLocaleTimeString();
-    
-    chart.data.labels.push(timestamp);
-    chart.data.datasets[0].data.push(data.sensor1);
-    chart.data.datasets[1].data.push(data.sensor2);
-    chart.data.datasets[2].data.push(data.sensor3);
-    
-    if (chart.data.labels.length > 20) {
-        chart.data.labels.shift();
-        chart.data.datasets.forEach(dataset => dataset.data.shift());
-    }
-    
-    chart.update();
-}
-
-// ... (previous WebSocket and gauge initialization code remains the same)
 
 function initChart() {
     const lineCtx = document.getElementById('sensorChart').getContext('2d');
@@ -168,6 +119,12 @@ function initChart() {
     });
 }
 
+function updateGauges(data) {
+    gauges[0].set(data.sensor1);
+    gauges[1].set(data.sensor2);
+    gauges[2].set(data.sensor3);
+}
+
 function updateCharts(data) {
     // Update line chart
     const timestamp = new Date().toLocaleTimeString();
@@ -209,11 +166,9 @@ function sendMessage() {
     document.getElementById('messageInput').value = '';
 }
 
-
-
 // Initialize everything
 window.onload = () => {
     initWebSocket();
     initGauges();
     initChart();
-}; 
+};
