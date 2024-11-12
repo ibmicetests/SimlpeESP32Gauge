@@ -98,11 +98,118 @@ function updateChart(data) {
     chart.update();
 }
 
+// ... (previous WebSocket and gauge initialization code remains the same)
+
+function initChart() {
+    const lineCtx = document.getElementById('sensorChart').getContext('2d');
+    const numberCtx = document.getElementById('numberChart').getContext('2d');
+    
+    // Line chart
+    chart = new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Sensor 1',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1
+            }, {
+                label: 'Sensor 2',
+                data: [],
+                borderColor: 'rgb(54, 162, 235)',
+                tension: 0.1
+            }, {
+                label: 'Sensor 3',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Number display chart
+    numberChart = new Chart(numberCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Sensor 1', 'Sensor 2', 'Sensor 3'],
+            datasets: [{
+                label: 'Current Values',
+                data: [0, 0, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(75, 192, 192, 0.5)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(75, 192, 192)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function updateCharts(data) {
+    // Update line chart
+    const timestamp = new Date().toLocaleTimeString();
+    
+    chart.data.labels.push(timestamp);
+    chart.data.datasets[0].data.push(data.sensor1);
+    chart.data.datasets[1].data.push(data.sensor2);
+    chart.data.datasets[2].data.push(data.sensor3);
+    
+    if (chart.data.labels.length > 20) {
+        chart.data.labels.shift();
+        chart.data.datasets.forEach(dataset => dataset.data.shift());
+    }
+    
+    chart.update();
+
+    // Update number chart
+    numberChart.data.datasets[0].data = [data.sensor1, data.sensor2, data.sensor3];
+    numberChart.update();
+}
+
 function sendMessage() {
     const message = document.getElementById('messageInput').value;
-    ws.send(message);
+    const interval = document.getElementById('intervalInput').value;
+    
+    // Validate interval
+    if (interval < 1 || interval > 3600) {
+        alert('Interval must be between 1 and 3600 seconds');
+        return;
+    }
+
+    // Send both message and interval
+    const data = {
+        message: message,
+        interval: parseInt(interval)
+    };
+    
+    ws.send(JSON.stringify(data));
     document.getElementById('messageInput').value = '';
 }
+
+
 
 // Initialize everything
 window.onload = () => {
