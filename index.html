@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .gauges {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .gauge-container {
+            width: 200px;
+            text-align: center;
+        }
+        .chart-container {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+        .message-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="gauges">
+            <div class="gauge-container">
+                <canvas id="gauge1"></canvas>
+                <p>Sensor 1</p>
+            </div>
+            <div class="gauge-container">
+                <canvas id="gauge2"></canvas>
+                <p>Sensor 2</p>
+            </div>
+            <div class="gauge-container">
+                <canvas id="gauge3"></canvas>
+                <p>Sensor 3</p>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="sensorChart"></canvas>
+        </div>
+        
+        <div class="message-container">
+            <input type="text" id="messageInput" placeholder="Enter message for ESP32">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
