@@ -3,7 +3,6 @@ let chart;
 let numberChart;
 let gauges = [];
 
-// Initialize WebSocket connection
 function initWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
@@ -12,43 +11,105 @@ function initWebSocket() {
         const data = JSON.parse(event.data);
         updateGauges(data);
         updateCharts(data);
+        updateValues(data);
     };
 
     ws.onopen = () => {
         console.log('Connected to server');
+        updateConnectionStatus(true);
     };
 
     ws.onclose = () => {
         console.log('Disconnected from server');
+        updateConnectionStatus(false);
         setTimeout(initWebSocket, 3000);
     };
 }
 
-// Initialize gauges
+function updateConnectionStatus(connected) {
+    const statusElement = document.getElementById('connection-status');
+    if (connected) {
+        statusElement.textContent = 'Connected';
+        statusElement.className = 'connection-status status-connected';
+    } else {
+        statusElement.textContent = 'Disconnected - Reconnecting...';
+        statusElement.className = 'connection-status status-disconnected';
+    }
+}
+
 function initGauges() {
-    for (let i = 1; i <= 3; i++) {
-        const gauge = new Gauge(document.getElementById(`gauge${i}`)).setOptions({
-            angle: 0.15,
-            lineWidth: 0.44,
-            radiusScale: 1,
-            pointer: {
-                length: 0.6,
-                strokeWidth: 0.035,
-                color: '#000000'
-            },
-            limitMax: false,
-            limitMin: false,
-            colorStart: '#6FADCF',
-            colorStop: '#8FC0DA',
-            strokeColor: '#E0E0E0',
-            generateGradient: true,
-            highDpiSupport: true,
-            maxValue: 100
-        });
+    const gaugeOptions = {
+        angle: -0.2,
+        lineWidth: 0.2,
+        radiusScale: 0.9,
+        pointer: {
+            length: 0.6,
+            strokeWidth: 0.035,
+            color: '#000000'
+        },
+        limitMax: false,
+        limitMin: false,
+        generateGradient: true,
+        highDpiSupport: true,
+        staticLabels: {
+            font: "12px sans-serif",
+            labels: [0, 20, 40, 60, 80, 100],
+            color: "#000000",
+            fractionDigits: 0
+        },
+        renderTicks: {
+            divisions: 5,
+            divWidth: 1.1,
+            divLength: 0.7,
+            divColor: '#333333',
+            subDivisions: 3,
+            subLength: 0.5,
+            subWidth: 0.6,
+            subColor: '#666666'
+        }
+    };
+
+    // Temperature Gauge
+    const gauge1 = new Gauge(document.getElementById('gauge1')).setOptions({
+        ...gaugeOptions,
+        staticZones: [
+            {strokeStyle: "#30B32D", min: 0, max: 30},
+            {strokeStyle: "#FFDD00", min: 30, max: 60},
+            {strokeStyle: "#F03E3E", min: 60, max: 100}
+        ],
+        maxValue: 100,
+        units: "°C"
+    });
+
+    // Humidity Gauge
+    const gauge2 = new Gauge(document.getElementById('gauge2')).setOptions({
+        ...gaugeOptions,
+        staticZones: [
+            {strokeStyle: "#30B32D", min: 0, max: 40},
+            {strokeStyle: "#FFDD00", min: 40, max: 70},
+            {strokeStyle: "#F03E3E", min: 70, max: 100}
+        ],
+        maxValue: 100,
+        units: "%"
+    });
+
+    // Battery Level Gauge
+    const gauge3 = new Gauge(document.getElementById('gauge3')).setOptions({
+        ...gaugeOptions,
+        staticZones: [
+            {strokeStyle: "#F03E3E", min: 0, max: 20},
+            {strokeStyle: "#FFDD00", min: 20, max: 40},
+            {strokeStyle: "#30B32D", min: 40, max: 100}
+        ],
+        maxValue: 100,
+        units: "%"
+    });
+
+    gauges = [gauge1, gauge2, gauge3];
+    gauges.forEach(gauge => {
         gauge.setMinValue(0);
         gauge.animationSpeed = 32;
-        gauges.push(gauge);
-    }
+    });
 }
 
 function initChart() {
@@ -61,17 +122,17 @@ function initChart() {
         data: {
             labels: [],
             datasets: [{
-                label: 'Sensor 1',
+                label: 'Temperature (°C)',
                 data: [],
                 borderColor: 'rgb(255, 99, 132)',
                 tension: 0.1
             }, {
-                label: 'Sensor 2',
+                label: 'Humidity (%)',
                 data: [],
                 borderColor: 'rgb(54, 162, 235)',
                 tension: 0.1
             }, {
-                label: 'Sensor 3',
+                label: 'Battery (%)',
                 data: [],
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
@@ -81,8 +142,12 @@ function initChart() {
             responsive: true,
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    max: 100
                 }
+            },
+            animation: {
+                duration: 750
             }
         }
     });
@@ -91,7 +156,7 @@ function initChart() {
     numberChart = new Chart(numberCtx, {
         type: 'bar',
         data: {
-            labels: ['Sensor 1', 'Sensor 2', 'Sensor 3'],
+            labels: ['Temperature', 'Humidity', 'Battery'],
             datasets: [{
                 label: 'Current Values',
                 data: [0, 0, 0],
@@ -112,8 +177,12 @@ function initChart() {
             responsive: true,
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    max: 100
                 }
+            },
+            animation: {
+                duration: 750
             }
         }
     });
@@ -126,7 +195,6 @@ function updateGauges(data) {
 }
 
 function updateCharts(data) {
-    // Update line chart
     const timestamp = new Date().toLocaleTimeString();
     
     chart.data.labels.push(timestamp);
@@ -141,22 +209,25 @@ function updateCharts(data) {
     
     chart.update();
 
-    // Update number chart
     numberChart.data.datasets[0].data = [data.sensor1, data.sensor2, data.sensor3];
     numberChart.update();
+}
+
+function updateValues(data) {
+    document.getElementById('value1').textContent = `${data.sensor1.toFixed(1)}°C`;
+    document.getElementById('value2').textContent = `${data.sensor2.toFixed(1)}%`;
+    document.getElementById('value3').textContent = `${data.sensor3.toFixed(1)}%`;
 }
 
 function sendMessage() {
     const message = document.getElementById('messageInput').value;
     const interval = document.getElementById('intervalInput').value;
     
-    // Validate interval
     if (interval < 1 || interval > 3600) {
         alert('Interval must be between 1 and 3600 seconds');
         return;
     }
 
-    // Send both message and interval
     const data = {
         message: message,
         interval: parseInt(interval)
@@ -166,7 +237,7 @@ function sendMessage() {
     document.getElementById('messageInput').value = '';
 }
 
-// Initialize everything
+// Initialize everything when the page loads
 window.onload = () => {
     initWebSocket();
     initGauges();
